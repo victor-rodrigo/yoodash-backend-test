@@ -48,7 +48,7 @@ export function validateValueDivision(totalValue, months) {
   }
 
   const monthlyValue = totalValue / months.length;
-  const isValidDivision = Number.isInteger(monthlyValue * 100) / 100 === monthlyValue;
+  const isValidDivision = Number.isInteger(monthlyValue * 100);
 
   if (!isValidDivision) {
     return {

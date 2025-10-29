@@ -1,7 +1,9 @@
 
 import {
   InvestmentGoalQuery,
-  InvestmentGoalParams
+  InvestmentGoalParams,
+  InvestmentGoalCreate,
+  validateValueDivision
 } from '../schemas/investment-goals.js';
 
 export default async function investmentGoalsRoutes(fastify, options) {
@@ -120,6 +122,68 @@ export default async function investmentGoalsRoutes(fastify, options) {
       if (error.name === 'ZodError') {
         return reply.code(400).send({
           error: 'ID inválido',
+          details: error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message
+          }))
+        });
+      }
+
+      fastify.log.error(error);
+      return reply.code(500).send({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  fastify.post('/investment-goals', {
+    schema: {
+      description: 'Criar nova meta de investimento',
+      tags: ['investment-goals'],
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          months: { type: 'array', items: { type: 'string' } },
+          value: { type: 'number' }
+        },
+        required: ['name', 'months', 'value']
+      },
+      response: {
+        201: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            name: { type: 'string' },
+            months: { type: 'array', items: { type: 'string' } },
+            value: { type: 'number' },
+            created_at: { type: 'string', format: 'date-time' },
+            updated_at: { type: 'string', format: 'date-time' }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    try {
+      const validatedData = InvestmentGoalCreate.parse(request.body);
+
+      const divisionValidation = validateValueDivision(validatedData.value, validatedData.months);
+      if (!divisionValidation.isValid) {
+        return reply.code(400).send({ error: divisionValidation.error });
+      }
+
+      const query = `
+        INSERT INTO investment_goals (name, months, value)
+        VALUES ($1, $2, $3)
+        RETURNING id, name, months, value, created_at, updated_at
+      `;
+
+      const values = [validatedData.name, validatedData.months, validatedData.value];
+      const { rows } = await fastify.pg.query(query, values);
+
+      return reply.code(201).send(rows[0]);
+    } catch (error) {
+      if (error.name === 'ZodError') {
+        return reply.code(400).send({
+          error: 'Dados inválidos',
           details: error.errors.map(err => ({
             field: err.path.join('.'),
             message: err.message
