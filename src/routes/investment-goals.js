@@ -310,4 +310,62 @@ export default async function investmentGoalsRoutes(fastify, options) {
       return reply.code(500).send({ error: 'Erro interno do servidor' });
     }
   });
+
+  // Nota: Em um sistema de produção, implementaria soft delete (deleted_at)
+  // para auditoria e possível recuperação de dados.
+  // Mantido como hard delete por simplicidade e escopo do teste.
+  fastify.delete('/investment-goals/:id', {
+    schema: {
+      description: 'Deletar meta de investimento',
+      tags: ['investment-goals'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      },
+      response: {
+        204: {
+          type: 'null',
+          description: 'Meta deletada com sucesso'
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    try {
+      const params = InvestmentGoalParams.parse(request.params);
+
+      const checkQuery = 'SELECT id FROM investment_goals WHERE id = $1';
+      const { rows: existingRows } = await fastify.pg.query(checkQuery, [params.id]);
+
+      if (existingRows.length === 0) {
+        return reply.code(404).send({ error: 'Meta de investimento não encontrada' });
+      }
+
+      const deleteQuery = 'DELETE FROM investment_goals WHERE id = $1';
+      await fastify.pg.query(deleteQuery, [params.id]);
+
+      return reply.code(204).send();
+    } catch (error) {
+      if (error.name === 'ZodError') {
+        return reply.code(400).send({
+          error: 'ID inválido',
+          details: error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message
+          }))
+        });
+      }
+
+      fastify.log.error(error);
+      return reply.code(500).send({ error: 'Erro interno do servidor' });
+    }
+  });
 }
