@@ -2,34 +2,34 @@
 import { z } from 'zod';
 
 const validMonths = [
-  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+  'january', 'february', 'march', 'april', 'may', 'june',
+  'july', 'august', 'september', 'october', 'november', 'december'
 ];
 
 export const InvestmentGoalResponse = z.object({
   id: z.number().int().positive(),
-  nome: z.string().min(1, 'Nome é obrigatório'),
-  meses: z.array(z.enum(validMonths)).min(1, 'Pelo menos um mês deve ser selecionado'),
-  valor: z.number().positive('Valor deve ser maior que zero'),
+  name: z.string().min(1, 'Nome é obrigatório'),
+  months: z.array(z.enum(validMonths)).min(1, 'Pelo menos um mês deve ser selecionado'),
+  value: z.number().positive('Valor deve ser maior que zero'),
   created_at: z.string().datetime(),
   updated_at: z.string().datetime()
 });
 
 export const InvestmentGoalCreate = z.object({
-  nome: z.string().min(1, 'Nome é obrigatório').max(255, 'Nome deve ter no máximo 255 caracteres'),
-  meses: z.array(z.enum(validMonths)).min(1, 'Pelo menos um mês deve ser selecionado'),
-  valor: z.number().positive('Valor deve ser maior que zero')
+  name: z.string().min(1, 'Nome é obrigatório').max(255, 'Nome deve ter no máximo 255 caracteres'),
+  months: z.array(z.enum(validMonths)).min(1, 'Pelo menos um mês deve ser selecionado'),
+  value: z.number().positive('Valor deve ser maior que zero')
 });
 
 export const InvestmentGoalUpdate = z.object({
-  nome: z.string().min(1, 'Nome é obrigatório').max(255, 'Nome deve ter no máximo 255 caracteres').optional(),
-  meses: z.array(z.enum(validMonths)).min(1, 'Pelo menos um mês deve ser selecionado').optional(),
-  valor: z.number().positive('Valor deve ser maior que zero').optional()
+  name: z.string().min(1, 'Nome é obrigatório').max(255, 'Nome deve ter no máximo 255 caracteres').optional(),
+  months: z.array(z.enum(validMonths)).min(1, 'Pelo menos um mês deve ser selecionado').optional(),
+  value: z.number().positive('Valor deve ser maior que zero').optional()
 });
 
 export const InvestmentGoalQuery = z.object({
-  nome: z.string().optional(),
-  mes: z.enum(validMonths).optional()
+  name: z.string().optional(),
+  month: z.enum(validMonths).optional()
 });
 
 export const InvestmentGoalParams = z.object({
