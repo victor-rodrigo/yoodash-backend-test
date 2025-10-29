@@ -1,4 +1,5 @@
 
+import { ZodError } from 'zod';
 import {
   InvestmentGoalQuery,
   InvestmentGoalParams,
@@ -61,7 +62,7 @@ export default async function investmentGoalsRoutes(fastify, options) {
       const { rows } = await fastify.pg.query(query, values);
       return rows;
     } catch (error) {
-      if (error.name === 'ZodError') {
+      if (error instanceof ZodError) {
         return reply.code(400).send({
           error: 'Parâmetros de consulta inválidos',
           details: error.errors.map(err => ({
@@ -120,7 +121,7 @@ export default async function investmentGoalsRoutes(fastify, options) {
 
       return rows[0];
     } catch (error) {
-      if (error.name === 'ZodError') {
+      if (error instanceof ZodError) {
         return reply.code(400).send({
           error: 'ID inválido',
           details: error.errors.map(err => ({
@@ -182,7 +183,7 @@ export default async function investmentGoalsRoutes(fastify, options) {
 
       return reply.code(201).send(rows[0]);
     } catch (error) {
-      if (error.name === 'ZodError') {
+      if (error instanceof ZodError) {
         return reply.code(400).send({
           error: 'Dados inválidos',
           details: error.errors.map(err => ({
@@ -296,7 +297,7 @@ export default async function investmentGoalsRoutes(fastify, options) {
 
       return rows[0];
     } catch (error) {
-      if (error.name === 'ZodError') {
+      if (error instanceof ZodError) {
         return reply.code(400).send({
           error: 'Dados inválidos',
           details: error.errors.map(err => ({
@@ -354,7 +355,7 @@ export default async function investmentGoalsRoutes(fastify, options) {
 
       return reply.code(204).send();
     } catch (error) {
-      if (error.name === 'ZodError') {
+      if (error instanceof ZodError) {
         return reply.code(400).send({
           error: 'ID inválido',
           details: error.errors.map(err => ({

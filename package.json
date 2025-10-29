@@ -6,7 +6,10 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": ["api", "rest", "fastify", "investment-goals"],
   "author": "",
@@ -21,6 +24,8 @@
     "dotenv": "^16.3.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.2",
+    "vitest": "^1.0.4",
+    "@vitest/coverage-v8": "^1.0.4"
   }
 }

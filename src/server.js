@@ -30,7 +30,7 @@ await fastify.register(import('@fastify/swagger'), {
 await fastify.register(import('@fastify/swagger-ui'), {
   routePrefix: '/docs',
   uiConfig: {
-    docExpansion: 'full',
+    docExpansion: 'list',
     deepLinking: false
   },
   staticCSP: true,
@@ -45,14 +45,6 @@ await fastify.register(import('./routes/investment-goals.js'));
 
 fastify.get('/health', async function (request, reply) {
   return { status: 'OK', timestamp: new Date().toISOString() };
-});
-
-fastify.get('/', async function (request, reply) {
-  return {
-    message: 'Investment Goals API',
-    docs: '/docs',
-    health: '/health'
-  };
 });
 
 const start = async () => {

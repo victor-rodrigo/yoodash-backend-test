@@ -10,6 +10,7 @@ Projeto desenvolvido como parte do teste técnico para a vaga de desenvolvedor b
 - **Docker** - Containerização do banco de dados
 - **Zod** - Validação de schemas e tipagem
 - **Swagger/OpenAPI** - Documentação automática da API
+- **Vitest** - Framework de testes unitários e de integração
 
 ## Estrutura do projeto
 
@@ -23,6 +24,10 @@ yoodash-backend-test/
 │   ├── schemas/       # Schemas Zod para validação
 │   │   └── investment-goals.js
 │   └── server.js      # Configuração do servidor Fastify
+├── tests/             # Testes unitários e de integração
+│   ├── helper.js      # Helpers para testes
+│   ├── schemas.test.js
+│   └── endpoints.test.js
 ├── docker-compose.yml # Configuração do PostgreSQL
 ├── package.json
 └── README.md
@@ -101,6 +106,30 @@ npm run dev
 - API: http://localhost:3000
 - Documentação: http://localhost:3000/docs
 - Health check: http://localhost:3000/health
+
+### Testes
+
+**Por que implementei testes?**
+
+Vi que a Yoodash valoriza bastante qualidade de código e testes. Então, mesmo não sendo obrigatório no desafio, resolvi implementar testes completos para demonstrar compromisso com boas práticas e código confiável.
+
+**Cobertura implementada:**
+
+- 11 testes unitários (validação de regras de negócio)
+- 19 testes de integração (cobertura completa dos endpoints)
+- 30 testes no total
+
+```bash
+# Rodar todos os testes
+npm test
+
+# Gerar relatório de cobertura
+npm run test:coverage
+```
+
+**Estratégia de isolamento:**
+
+Os testes utilizam transações do PostgreSQL (BEGIN/ROLLBACK) para garantir isolamento completo. Cada teste inicia uma transação e faz rollback ao final, preservando os dados originais do banco. Isso permite rodar os testes mesmo com dados de desenvolvimento no banco, sem risco de perdê-los.
 
 ### Comandos úteis
 

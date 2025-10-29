@@ -33,10 +33,14 @@ export const InvestmentGoalQuery = z.object({
 });
 
 export const InvestmentGoalParams = z.object({
-  id: z.string().transform((val) => {
+  id: z.string().transform((val, ctx) => {
     const num = parseInt(val);
     if (isNaN(num) || num <= 0) {
-      throw new Error('ID deve ser um número inteiro positivo');
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'ID deve ser um número inteiro positivo'
+      });
+      return z.NEVER;
     }
     return num;
   })
