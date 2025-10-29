@@ -1,0 +1,25 @@
+{
+  "name": "yoodash-backend-test",
+  "version": "1.0.0",
+  "description": "API RESTful para gerenciamento de metas de investimento",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": ["api", "rest", "fastify", "investment-goals"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fastify": "^4.26.0",
+    "@fastify/swagger": "^8.14.0",
+    "@fastify/swagger-ui": "^2.1.0",
+    "zod": "^3.22.4",
+    "pg": "^8.11.3",
+    "@fastify/postgres": "^5.2.2",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
