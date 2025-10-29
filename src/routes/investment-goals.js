@@ -1,6 +1,7 @@
 
 import {
-  InvestmentGoalQuery
+  InvestmentGoalQuery,
+  InvestmentGoalParams
 } from '../schemas/investment-goals.js';
 
 export default async function investmentGoalsRoutes(fastify, options) {
@@ -60,6 +61,65 @@ export default async function investmentGoalsRoutes(fastify, options) {
       if (error.name === 'ZodError') {
         return reply.code(400).send({
           error: 'Parâmetros de consulta inválidos',
+          details: error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message
+          }))
+        });
+      }
+
+      fastify.log.error(error);
+      return reply.code(500).send({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  fastify.get('/investment-goals/:id', {
+    schema: {
+      description: 'Buscar meta de investimento por ID',
+      tags: ['investment-goals'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            name: { type: 'string' },
+            months: { type: 'array', items: { type: 'string' } },
+            value: { type: 'number' },
+            created_at: { type: 'string', format: 'date-time' },
+            updated_at: { type: 'string', format: 'date-time' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    try {
+      const params = InvestmentGoalParams.parse(request.params);
+
+      const query = 'SELECT * FROM investment_goals WHERE id = $1';
+      const { rows } = await fastify.pg.query(query, [params.id]);
+
+      if (rows.length === 0) {
+        return reply.code(404).send({ error: 'Meta de investimento não encontrada' });
+      }
+
+      return rows[0];
+    } catch (error) {
+      if (error.name === 'ZodError') {
+        return reply.code(400).send({
+          error: 'ID inválido',
           details: error.errors.map(err => ({
             field: err.path.join('.'),
             message: err.message
