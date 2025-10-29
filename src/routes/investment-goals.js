@@ -3,6 +3,7 @@ import {
   InvestmentGoalQuery,
   InvestmentGoalParams,
   InvestmentGoalCreate,
+  InvestmentGoalUpdate,
   validateValueDivision
 } from '../schemas/investment-goals.js';
 
@@ -180,6 +181,120 @@ export default async function investmentGoalsRoutes(fastify, options) {
       const { rows } = await fastify.pg.query(query, values);
 
       return reply.code(201).send(rows[0]);
+    } catch (error) {
+      if (error.name === 'ZodError') {
+        return reply.code(400).send({
+          error: 'Dados inválidos',
+          details: error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message
+          }))
+        });
+      }
+
+      fastify.log.error(error);
+      return reply.code(500).send({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  fastify.put('/investment-goals/:id', {
+    schema: {
+      description: 'Atualizar meta de investimento',
+      tags: ['investment-goals'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      },
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          months: { type: 'array', items: { type: 'string' } },
+          value: { type: 'number' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            name: { type: 'string' },
+            months: { type: 'array', items: { type: 'string' } },
+            value: { type: 'number' },
+            created_at: { type: 'string', format: 'date-time' },
+            updated_at: { type: 'string', format: 'date-time' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    try {
+      const params = InvestmentGoalParams.parse(request.params);
+      const updateData = InvestmentGoalUpdate.parse(request.body);
+
+      const checkQuery = 'SELECT * FROM investment_goals WHERE id = $1';
+      const { rows: existingRows } = await fastify.pg.query(checkQuery, [params.id]);
+
+      if (existingRows.length === 0) {
+        return reply.code(404).send({ error: 'Meta de investimento não encontrada' });
+      }
+
+      const finalValue = updateData.value ?? existingRows[0].value;
+      const finalMonths = updateData.months ?? existingRows[0].months;
+
+      const divisionValidation = validateValueDivision(finalValue, finalMonths);
+      if (!divisionValidation.isValid) {
+        return reply.code(400).send({ error: divisionValidation.error });
+      }
+
+      const updateFields = [];
+      const values = [];
+      let paramIndex = 1;
+
+      if (updateData.name !== undefined) {
+        updateFields.push(`name = $${paramIndex}`);
+        values.push(updateData.name);
+        paramIndex++;
+      }
+
+      if (updateData.months !== undefined) {
+        updateFields.push(`months = $${paramIndex}`);
+        values.push(updateData.months);
+        paramIndex++;
+      }
+
+      if (updateData.value !== undefined) {
+        updateFields.push(`value = $${paramIndex}`);
+        values.push(updateData.value);
+        paramIndex++;
+      }
+
+      if (updateFields.length === 0) {
+        return reply.code(400).send({ error: 'Nenhum campo para atualizar foi fornecido' });
+      }
+
+      updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+
+      const updateQuery = `
+        UPDATE investment_goals
+        SET ${updateFields.join(', ')}
+        WHERE id = $${paramIndex}
+        RETURNING id, name, months, value, created_at, updated_at
+      `;
+
+      values.push(params.id);
+      const { rows } = await fastify.pg.query(updateQuery, values);
+
+      return rows[0];
     } catch (error) {
       if (error.name === 'ZodError') {
         return reply.code(400).send({
